@@ -41,14 +41,23 @@ pipeline {
                 '''
             }
         }
-
+        stage('Wait for deployment') {
+            steps {
+                bat '''
+                 echo Waiting for html-site deployment to be ready...
+                 kubectl rollout status deployment/html-site --timeout=60s
+                 echo Current pods:
+                 kubectl get pods
+         '''
+    }
+}
         stage('Smoke info (print URL)') {
             steps {
                 bat '''
                   echo Getting service URL...
                   minikube service html-site-service --url
-                '''
+                  '''
+                 }
             }
-        }
     }
 }
