@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: html-site
+  labels:
+    app: html-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: html-site
+  template:
+    metadata:
+      labels:
+        app: html-site
+    spec:
+      containers:
+        - name: html-site
+          image: my-html-site:latest
+          ports:
+            - containerPort: 80
+          imagePullPolicy: IfNotPresent
