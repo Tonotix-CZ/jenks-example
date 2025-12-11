@@ -33,6 +33,24 @@ pipeline {
             }
         }
 
+ stage('Debug K8s connection') {
+    steps {
+        bat '''
+          echo === Minikube status ===
+          minikube status
+
+          echo === kubectl current context ===
+          kubectl config current-context
+
+          echo === kubectl cluster-info ===
+          kubectl cluster-info
+
+          echo === kubectl get nodes ===
+          kubectl get nodes
+         '''
+          }
+        }
+        
         stage('Deploy to Kubernetes') {
             steps {
                 bat '''
@@ -59,22 +77,6 @@ pipeline {
                   '''
                  }
             }
-            stage('Debug K8s connection') {
-    steps {
-        bat '''
-          echo === Minikube status ===
-          minikube status
-
-          echo === kubectl current context ===
-          kubectl config current-context
-
-          echo === kubectl cluster-info ===
-          kubectl cluster-info
-
-          echo === kubectl get nodes ===
-          kubectl get nodes
-         '''
-          }
-        }
+           
     }
 }
