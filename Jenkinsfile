@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "my-html-site"
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
     }
 
     triggers {
@@ -20,7 +21,8 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 bat '''
-                  docker build -t %IMAGE_NAME%:latest .
+                  docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+                  minikube image load %IMAGE_NAME%:%IMAGE_TAG%
                 '''
             }
         }
@@ -56,6 +58,11 @@ pipeline {
                 bat '''
                   kubectl apply -f k8s/deployment.yaml
                   kubectl apply -f k8s/service.yaml
+                  echo Updating deployment image...
+                  kubectl set image deployment/html-site html-site=%IMAGE_NAME%:%IMAGE_TAG%
+
+                  echo Waiting for rollout to complete...
+                  kubectl rollout status deployment/html-site --timeout=60s
                 '''
             }
         }
