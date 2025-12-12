@@ -24,11 +24,44 @@ pipeline {
             }
         }
 
+         stage('Show HTML version') {
+            steps {
+                bat '''
+                  echo ===== index.html in workspace =====
+                  type index.html
+                  echo ==================================
+                '''
+            }
+        }
+
         stage('Build Docker image') {
             steps {
                 bat '''
                   docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
                   minikube image load %IMAGE_NAME%:%IMAGE_TAG%
+                '''
+            }
+        }
+
+         stage('Test Docker image (pre-deploy)') {
+            steps {
+                bat '''
+                  echo Starting test container...
+                  docker run -d --rm --name html-test -p 8081:80 %IMAGE_NAME%:%IMAGE_TAG%
+
+                  echo Waiting for container to start...
+                  timeout /t 5 /nobreak >NUL
+
+                  echo Running HTTP test against http://localhost:8081 ...
+                  curl -sSf http://localhost:8081 | find "Hello"
+                  if errorlevel 1 (
+                    echo TEST FAILED: Expected text not found in response
+                    docker stop html-test
+                    exit /b 1
+                  )
+
+                  echo Tests passed.
+                  docker stop html-test
                 '''
             }
         }
@@ -62,16 +95,61 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 bat '''
+                  echo Applying manifests...
                   kubectl apply -f k8s/deployment.yaml
                   kubectl apply -f k8s/service.yaml
-                  echo Updating deployment image...
+
+                  echo Updating deployment image to %IMAGE_NAME%:%IMAGE_TAG% ...
                   kubectl set image deployment/html-site html-site=%IMAGE_NAME%:%IMAGE_TAG%
 
                   echo Waiting for rollout to complete...
                   kubectl rollout status deployment/html-site --timeout=60s
+
+                  echo Pods after rollout:
+                  kubectl get pods
                 '''
             }
         }
+
+         stage('Smoke test on Minikube') {
+            steps {
+                bat '''
+                  echo Getting service URL from Minikube...
+                  for /f "delims=" %%i in ('minikube service html-site-service --url') do set SVC_URL=%%i
+                  echo Service URL: %SVC_URL%
+
+                  echo Testing live service...
+                  curl -sSf %SVC_URL% | find "Hello"
+                  if errorlevel 1 (
+                    echo SMOKE TEST FAILED: Expected text not found in live service
+                    exit /b 1
+                  )
+
+                  echo Smoke test passed.
+                '''
+            }
+        }
+
+         post {
+        failure {
+            // Automatic rollback if anything fails (especially deploy/smoke)
+            bat '''
+              echo Build FAILED. Attempting Kubernetes rollback...
+
+              kubectl get deployment html-site >NUL 2>&1
+              if errorlevel 1 (
+                echo No deployment/html-site found. Skipping rollback.
+                exit /b 0
+              )
+
+              echo Rolling back deployment/html-site to previous revision...
+              kubectl rollout undo deployment/html-site || echo Rollback command failed.
+
+              echo Rollback finished (if a previous revision existed).
+            '''
+        }
+    }
+
         stage('Wait for deployment') {
             steps {
                 bat '''
@@ -92,4 +170,5 @@ pipeline {
             }
            
     }
+     
 }
