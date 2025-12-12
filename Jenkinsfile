@@ -8,7 +8,10 @@ pipeline {
 
     triggers {
         // Every minute check for changes in Git
-        pollSCM('* * * * *')
+       // pollSCM('* * * * *')
+       // Trigger build on GitHub push events - Listen to webhook events
+           githubPush()
+
     }
 
     stages {
