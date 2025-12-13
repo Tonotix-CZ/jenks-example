@@ -110,7 +110,7 @@ pipeline {
         stage('Smoke test on Minikube') {
             steps {
                 bat '''
-                  echo Getting service URL from Minikube...
+                  echo Getting service URL from Minikube now...
                   for /f "delims=" %%i in ('minikube service html-site-service --url') do set SVC_URL=%%i
                   echo Service URL: %SVC_URL%
 
