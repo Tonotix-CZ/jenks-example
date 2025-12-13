@@ -45,7 +45,7 @@ pipeline {
                   docker run -d --rm --name html-test -p 8081:80 %IMAGE_NAME%:%IMAGE_TAG%
 
                   echo Waiting for container to start...
-                  timeout /t 5 /nobreak >NUL
+                  ping -n 6 127.0.0.1 >NUL
 
                   echo Running HTTP test against http://localhost:8081 ...
                   curl -sSf http://localhost:8081 | find "Hello"
@@ -110,15 +110,16 @@ pipeline {
         stage('Smoke test on Minikube') {
             steps {
                 bat '''
-                  echo Getting service URL from Minikube now...
-                  for /f "delims=" %%i in ('minikube service html-site-service --url') do set SVC_URL=%%i
-                  echo Service URL: %SVC_URL%
+                  echo Smoke test using Minikube IP + NodePort 30080...
 
-                  echo Testing live service...
-                  curl -sSf %SVC_URL% | find "Hello"
-                  if errorlevel 1 (
-                    echo SMOKE TEST FAILED: Expected text not found in live service
-                    exit /b 1
+                  for /f "delims=" %%i in ('minikube ip') do (
+                    echo Using Minikube IP: %%i
+                    echo Curling http://%%i:30080 ...
+                    curl -sSf http://%%i:30080 | find "Hello"
+                    if errorlevel 1 (
+                      echo SMOKE TEST FAILED: Expected text not found in live service
+                      exit /b 1
+                    )
                   )
 
                   echo Smoke test passed.
@@ -127,7 +128,6 @@ pipeline {
         }
     }
 
-    // Automatic rollback on failure
     post {
         failure {
             bat '''
