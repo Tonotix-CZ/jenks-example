@@ -107,17 +107,16 @@ pipeline {
             }
         }
 
-        stage('Smoke test on Minikube') {
+                stage('Smoke test on Minikube') {
             steps {
                 bat '''
-                  echo Smoke test using Minikube IP + NodePort 30080...
+                  echo Smoke test from inside Kubernetes pod...
 
-                  for /f "delims=" %%i in ('minikube ip') do (
-                    echo Using Minikube IP: %%i
-                    echo Curling http://%%i:30080 ...
-                    curl -sSf http://%%i:30080 | find "Hello"
+                  for /f "delims=" %%i in ('kubectl get pods -l app=html-site -o jsonpath="{.items[0].metadata.name}"') do (
+                    echo Using pod: %%i
+                    kubectl exec %%i -- sh -c "wget -qO- http://localhost" | find "Hello"
                     if errorlevel 1 (
-                      echo SMOKE TEST FAILED: Expected text not found in live service
+                      echo SMOKE TEST FAILED: Expected text not found in live pod
                       exit /b 1
                     )
                   )
