@@ -32,7 +32,7 @@ pipeline {
         stage('Build Docker image') {
             steps {
                 bat '''
-                  echo Building Docker image %IMAGE_NAME%:%IMAGE_TAG% ...
+                  echo Building The Docker image %IMAGE_NAME%:%IMAGE_TAG% ...
                   docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
                 '''
             }
