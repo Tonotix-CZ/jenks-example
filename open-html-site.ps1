@@ -1,4 +1,4 @@
-# open-html-site.ps1
+# open-html-site.ps1!
 Write-Host "Starting Minikube service for html-site-service..."
 
 # This will print the URL and try to open a browser
@@ -15,3 +15,4 @@ if ($url) {
 } else {
     Write-Host "Could not detect URL from minikube output."
 }
+
