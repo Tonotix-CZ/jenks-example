@@ -40,45 +40,21 @@ kubectl rollout undo deployment/html-site
 - Local viewing script (optional)
 A open-html-site.ps1 script opens your live Minikube service in a browser.
 
-    Architecture Diagram
-          +-------------+
-          |   GitHub    |
-          |  (Pushes)   |
-          +------+------+
-                 |
-                 v  Webhook
-           +-----+-----+
-           |  Jenkins  |
-           | Pipeline  |
-           +-----+-----+
-                 |
-       +---------+---------+
-       |  Build Docker     |
-       |  Run tests        |
-       +---------+---------+
-                 |
-                 v
-          +------+------+
-          |  Minikube   |
-          | Kubernetes  |
-          +------+------+
-                 |
-      +----------+-----------+
-      | Rolling Deployment   |
-      | Pod Smoke Testing    |
-      +----------+-----------+
-                 |
-                 v
-        +--------+--------+
-        |   Live Website   |
-        +------------------+
-
-📁 Repository Structure
+   Stages:
+            1. GitHub(Pushes)
+            2. Webhook
+            3. Jenkins Pipeline
+            4. Minikube Kubernetes
+            5. Rolling Deployment, Pod Smoke Testing
+            6. Live Website  
+          
+Repository Structure
 jenks-example/
 │
 ├── index.html               # Web app
 ├── Dockerfile               # Image build
 ├── Jenkinsfile              # Full CI/CD pipeline
+├── README              
 │
 └── k8s/
     ├── deployment.yaml      # Kubernetes deployment
@@ -105,10 +81,7 @@ Auto-rollback
 kubectl rollout undo deployment/html-site
 
     Viewing the Website:
-Option A — Recommended
-minikube service html-site-service
-This opens the browser automatically.
-Option B — Port forward
+Port forward
 kubectl port-forward deployment/html-site 8080:80
 Then open:
 http://localhost:8080
