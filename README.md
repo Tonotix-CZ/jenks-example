@@ -81,7 +81,10 @@ Auto-rollback
 kubectl rollout undo deployment/html-site
 
     Viewing the Website:
-Port forward
-kubectl port-forward deployment/html-site 8080:80
-Then open:
-http://localhost:8080
+minikube start
+kubectl port-forward deployment/html-site 18080:80
+ngrok http 18080
+
+http://localhost:18080 - on local machine
+Ngrok generated address - on remote machine 
+
