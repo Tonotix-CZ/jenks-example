@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: html-site
-  labels:
-    app: html-site
 spec:
   replicas: 1
   selector:
@@ -15,8 +13,8 @@ spec:
         app: html-site
     spec:
       containers:
-        - name: html-site
-          image: my-html-site:latest
-          ports:
-            - containerPort: 80
-          imagePullPolicy: IfNotPresent
+      - name: html-site
+        image: html-site:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
